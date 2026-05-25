@@ -1,0 +1,78 @@
+
+.arcade {
+  position: relative;
+  width: 400px; /* 画像の幅に合わせる */
+  margin: 0 auto;
+}
+.machine-body {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#lmp_top {
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 23%;
+}
+
+.result-lamp img{
+  position: absolute;
+  width: auto;
+  height: 49px;
+  top:33.3%;
+}
+
+#lmp_make  { left: 8%; }
+#lmp_kachi { left: 37.8%; }
+#lmp_aiko  { left: 65%; }
+
+.display{
+    position: absolute;
+    top: 45.4%;
+    left: 27.6%;
+    width: 180px;
+    height: auto;
+}
+
+#start_btn {
+  position: absolute;
+  top: 78.5%; 
+  left: 9%;
+  width: 13%;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.1s;
+}
+
+.buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.buttons li {
+  list-style: none;
+  position: absolute;
+  width: 20%;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.buttons li img {
+  width: 65%;
+  display: block;
+  border-radius: 50%;
+}
+
+#start_btn:active, .buttons li:active {
+  filter: brightness(0.7);
+  transform: scale(0.98) translateY(1px);
+}
+
+#gu_btn { left: 30%; top: 74.3%; }
+#cho_btn { left: 49%; top: 74.3%; }
+#par_btn { left: 68%; top: 74.3%; }

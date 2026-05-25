@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="js/jquery-2.1.3.min.js"></script>
+<link rel="stylesheet" href="css/janken_arcade.css">
+<title>じゃんけんまし〜ん</title>
+</head>
+<body>
+
+<header>
+  <h1 style="text-align: center;">＼じゃんけんまし〜ん／</h1>
+</header>
+
+<main>
+
+
+<div class="arcade">
+  <img class="machine-body" src="img/janken_macine/hontai_kara.png" alt="じゃんけんマシン">
+  
+  <img id="lmp_top" src="img/janken_macine/btn_blue_siro.png" style="display: none;">
+
+  <div class="result-lamp">
+    <img id="lmp_make" src="img/janken_macine/btn_make_siro.png">
+    <img id="lmp_kachi" src="img/janken_macine/btn_kachi_siro.png">
+    <img id="lmp_aiko" src="img/janken_macine/btn_aiko_siro.png">  
+  </div>
+
+  <img class="display" src="./img/janken_macine/gu_.png" alt="表示">
+  
+<img id="start_btn" src="img/janken_macine/btn_start.png" alt="START">
+
+<ul class="buttons">
+  <li id="gu_btn"><img src="img/janken_macine/btn_gu.png" alt="グー"></li>
+  <li id="cho_btn"><img src="img/janken_macine/btn_choki.png" alt="チョキ"></li>
+  <li id="par_btn"><img src="img/janken_macine/btn_pa_.png" alt="パー"></li>
+</ul>
+</div>
+
+
+</main>
+
+<footer></footer>
+
+
+<script>
+
+const displayhandsImg = [
+    "./img/janken_macine/gu_.png",
+    "./img/janken_macine/choki.png",
+    "./img/janken_macine/pa_.png"
+];
+
+let displayIndex = 0;
+let timerId = null;
+let playFlag = false;
+let resetTimerId = null;
+
+function showDisplay(handIndex) {
+  $(".display").attr("src", displayhandsImg[handIndex]);
+}
+
+
+// // 【通電チェック】
+// $(function() {
+//   showDisplay(1); 
+// });
+
+
+function Cycle(intervalMs) {
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    displayIndex = (displayIndex + 1) % displayhandsImg.length;
+    showDisplay(displayIndex);
+  }, intervalMs);
+}
+
+function stopCycle() {
+  clearInterval(timerId);
+  timerId = null;
+}
+
+
+$(function() {
+  Cycle(1200); 
+  
+  $("#start_btn").on("click", function() {
+    clearTimeout(resetTimerId);
+    Cycle(80); // スタートで速く
+    playFlag = true;
+    $("#lmp_make").attr("src", "img/janken_macine/btn_make_siro.png");
+    $("#lmp_kachi").attr("src", "img/janken_macine/btn_kachi_siro.png");
+    $("#lmp_aiko").attr("src", "img/janken_macine/btn_aiko_siro.png");
+  });
+
+  $("#gu_btn, #cho_btn, #par_btn").on("click", function() {
+    if (!playFlag) return;
+    playFlag = false;
+    stopCycle();
+    const randomIndex = Math.floor(Math.random() * displayhandsImg.length);
+    displayIndex = randomIndex;
+    showDisplay(randomIndex);
+
+    $("#lmp_make").attr("src", "img/janken_macine/btn_make_siro.png");
+    $("#lmp_kachi").attr("src", "img/janken_macine/btn_kachi_siro.png");
+    $("#lmp_aiko").attr("src", "img/janken_macine/btn_aiko_siro.png");
+
+    let myHand;
+    if (this.id === "gu_btn")  myHand = 0;
+    if (this.id === "cho_btn") myHand = 1;
+    if (this.id === "par_btn") myHand = 2;
+
+    const judgmentTable = [
+    ["aiko",  "kachi", "make"],
+    ["make",  "aiko",  "kachi"],
+    ["kachi", "make",  "aiko"]
+    ];
+    const result = judgmentTable[myHand][randomIndex];
+
+    $("#lmp_" + result).attr("src", "img/janken_macine/btn_" + result + "_hikaru.png");
+
+    if (result === "aiko") {
+        setTimeout(function() {
+            playFlag = true;
+            Cycle(80);
+        }, 750);
+    } else {
+        if (result === "kachi") {
+            const $top = $("#lmp_top");
+            $top.show();
+            setTimeout(() => { $top.hide(); }, 200);
+            setTimeout(() => { $top.show(); }, 400);
+            setTimeout(() => { $top.hide(); }, 600);
+            setTimeout(() => { $top.show(); }, 800);
+            setTimeout(() => { $top.hide(); }, 1000);
+            setTimeout(() => { $top.show(); }, 1200);
+            setTimeout(() => { $top.hide(); }, 1400);
+        }
+
+        resetTimerId = setTimeout(function() {
+            $("#lmp_make").attr("src", "img/janken_macine/btn_make_siro.png");
+            $("#lmp_kachi").attr("src", "img/janken_macine/btn_kachi_siro.png");
+            $("#lmp_aiko").attr("src", "img/janken_macine/btn_aiko_siro.png");
+        Cycle(1200);
+        console.log("リセット");
+        },1800);
+    }
+
+
+  });
+
+
+});
+
+
+
+
+
+</script>
+</body>
+</html>

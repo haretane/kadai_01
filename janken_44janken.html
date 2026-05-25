@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="js/jquery-2.1.3.min.js"></script>
+<link rel="stylesheet" href="css/janken_44janken.css">
+<title>４×４ JanKen</title>
+</head>
+<body>
+
+<header>
+  <h1 style="text-align: center;"><４×４ JanKen></h1>
+</header>
+
+<main>
+
+<div class="game-container">
+  <div class="mode-area">
+    <button class="mode-btn active" data-mode="easy">EASY</button>
+    <button class="mode-btn" data-mode="normal">NORMAL</button>
+    <button class="mode-btn" data-mode="hard">HARD</button>
+    <button class="mode-btn" data-mode="ultra">ULTRA</button>
+  </div>
+
+  <div id="status_text">CHOOSE MODE & PRESS START</div>
+
+  <div class="opponent-area">
+    <div class="display-box">
+      <img id="opponent_hand" src="img/handsSign/hands_gu.jpg" alt="相手の手">
+    </div>
+  </div>
+
+  <div class="control-area">
+    <div class="status-box">
+      <button id="start_btn">START</button>
+      <span id="game_message" style="display: none;"></span>
+    </div>
+    <div id="countdown_box">-</div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card-slot" id="slot_0"></div>
+    <div class="card-slot" id="slot_1"></div>
+    <div class="card-slot" id="slot_2"></div>
+    <div class="card-slot" id="slot_3"></div>
+    <div class="card-slot" id="slot_4"></div>
+    <div class="card-slot" id="slot_5"></div>
+    <div class="card-slot" id="slot_6"></div>
+    <div class="card-slot" id="slot_7"></div>
+    <div class="card-slot" id="slot_8"></div>
+    <div class="card-slot" id="slot_9"></div>
+    <div class="card-slot" id="slot_10"></div>
+    <div class="card-slot" id="slot_11"></div>
+    <div class="card-slot" id="slot_12"></div>
+    <div class="card-slot" id="slot_13"></div>
+    <div class="card-slot" id="slot_14"></div>
+    <div class="card-slot" id="slot_15"></div>
+  </div>
+</div>
+
+<div id="result_overlay" style="display: none;">
+  <img id="result_message" src="img/handsSign/youWin.png" alt="RESULT">
+</div>
+
+</main>
+
+<footer></footer>
+
+
+<script>
+// 1. CPUのディスプレイ
+const opponentHandsImg = [
+  "img/handsSign/hands_gu.jpg",
+  "img/handsSign/hands_choki.jpg",
+  "img/handsSign/hands_pa.jpg"
+];
+
+// 2. プレイヤー側の16枚のカードデータ
+const myCardsDataset = [
+  { src: "img/handsSign/hands_gu.jpg",    type: "gu" },
+  { src: "img/handsSign/hands_choki.jpg", type: "choki" },
+  { src: "img/handsSign/hands_pa.jpg",    type: "pa" },
+  { src: "img/handsSign/hands_01.jpg",    type: "other" },
+  { src: "img/handsSign/hands_02.jpg",    type: "other" },
+  { src: "img/handsSign/hands_03.jpg",    type: "other" },
+  { src: "img/handsSign/hands_04.jpg",    type: "other" },
+  { src: "img/handsSign/hands_05.jpg",    type: "other" },
+  { src: "img/handsSign/hands_06.jpg",    type: "other" },
+  { src: "img/handsSign/hands_07.jpg",    type: "other" },
+  { src: "img/handsSign/hands_08.jpg",    type: "other" },
+  { src: "img/handsSign/hands_09.jpg",    type: "other" },
+  { src: "img/handsSign/hands_10.jpg",    type: "other" },
+  { src: "img/handsSign/hands_11.jpg",    type: "other" },
+  { src: "img/handsSign/hands_12.jpg",    type: "other" },
+  { src: "img/handsSign/hands_13.jpg",    type: "other" }
+];
+
+// 3. ゲーム管理用の変数
+let currentMode = "easy";     // モード (easy, normal, hard, ultra)
+let isGameRunning = false;    // モードロックのフラグ
+let rouletteTimerId = null;   
+let countdownTimerId = null;  
+let opponentHandIndex = 0;    
+let playFlag = false;         
+
+// 配列シャッフルアルゴリズム
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// 各モードに則して16枚のカードを配給する関数
+function displayAllCards() {
+  shuffle(myCardsDataset); 
+  
+  myCardsDataset.forEach((card, index) => {
+    // ランダムな回転角度（0度, 90度, 180度, 270度）を決定
+    const degrees = [0, 90, 180, 270][Math.floor(Math.random() * 4)];
+    
+    let displaySrc = card.src;
+    let displayStyle = "transform: rotate(0deg);";
+    
+    // 【NORMALモード】最初からおもて面 ＋ ランダム回転
+    if (currentMode === "normal") {
+      displayStyle = `transform: rotate(${degrees}deg);`;
+    }
+    
+    // 【HARD / ULTRA モード】最初は全員「裏面（？」、回転は一律0度
+    if (currentMode === "hard" || currentMode === "ultra") {
+      displaySrc = "img/handsSign/card_ura.jpg";
+      displayStyle = "transform: rotate(0deg);";
+    }
+    
+    // 後から「裏返し」「回転」を命令できるように、リアルな情報を data 属性に隠し持つ
+    $(`#slot_${index}`).html(`
+      <img src="${displaySrc}" 
+           style="${displayStyle}" 
+           data-type="${card.type}" 
+           data-real-src="${card.src}" 
+           data-deg="${degrees}">
+    `);
+  });
+}
+
+function startOpponentRoulette() {
+  clearInterval(rouletteTimerId);
+  rouletteTimerId = setInterval(() => {
+    opponentHandIndex = Math.floor(Math.random() * opponentHandsImg.length);
+    $("#opponent_hand").attr("src", opponentHandsImg[opponentHandIndex]);
+  }, 80);
+}
+
+function showResult(status) {
+  playFlag = false;
+  clearInterval(countdownTimerId);
+  
+  const imgName = (status === "win") ? "youWin.png" : "Loose.png";
+  $("#result_message").attr("src", `img/handsSign/${imgName}`);
+  $("#result_overlay").fadeIn(200);
+}
+
+// ② ゲームの中身
+function initGameSequence(isAiko = false) {
+  playFlag = false; //じゃんけんが始まって無い状態にリセット
+  isGameRunning = true; // ゲーム中と認識（モード切り替え不可）
+  
+  displayAllCards();
+  $("#countdown_box").text("-");
+  
+  if (isAiko) {
+    $("#game_message").text("あいこで！");
+  } else {
+    $("#game_message").text("じゃん・けん");
+  }
+  
+  startOpponentRoulette();
+  
+  // 【じゃんけんタイム】
+  setTimeout(() => {
+    clearInterval(rouletteTimerId); 
+    if (isAiko) {
+      $("#game_message").text("しょ！");
+      } else {
+      $("#game_message").text("ぽん！");
+      }
+    
+    // 「ぽん！」の瞬間、HARD / ULTRA のカードを一斉におもて面に反転させる契約
+    if (currentMode === "hard" || currentMode === "ultra") {
+      $(".card-slot img").each(function() {
+        const realSrc = $(this).data("real-src");
+        const deg = $(this).data("deg");
+        
+        $(this).attr("src", realSrc);
+        // ULTRAのみ、おもて面になった瞬間に回転をブーストさせる
+        if (currentMode === "ultra") {
+          $(this).css("transform", `rotate(${deg}deg)`);
+        }
+      });
+    }
+    
+    let timeLeft = 2;
+    $("#countdown_box").text(timeLeft);
+    playFlag = true; 
+    
+    // カウントダウンタイマー
+    countdownTimerId = setInterval(() => {
+      timeLeft--;
+      if (timeLeft >= 0) {
+        $("#countdown_box").text(timeLeft);
+        
+        if (timeLeft === 0) {
+          clearInterval(countdownTimerId);
+          setTimeout(() => {
+            if (!playFlag) return; 
+            showResult("lose");
+          }, 500);
+        }
+      }
+    }, 1000);
+    
+  }, 2000); 
+}
+
+// イベントリスナー
+$(function() {
+  
+  //  モード切り替えボタンを押した時
+  $(".mode-btn").on("click", function() {
+    if (isGameRunning) return; // ゲーム中は固定
+    
+    $(".mode-btn").removeClass("active");
+    $(this).addClass("active");
+    currentMode = $(this).data("mode");
+    
+    // 待機画面のテキストを更新
+    $("#status_text").text(`${currentMode.toUpperCase()} MODE SELECTED`);
+  });
+
+  // ①STARTボタンを押した時
+  $("#start_btn").on("click", function() {
+    $("#start_btn").hide();      
+    $("#game_message").show();   
+    $("#status_text").text("READY...");
+    initGameSequence(false);
+  });
+
+  // 16マスのカードスロットをクリックした時
+  $(".card-slot").on("click", function() {
+    if (!playFlag) return; 
+    
+    const chosenType = $(this).find("img").data("type");
+    
+    if (chosenType === "other") {
+      showResult("lose");
+      return;
+    }
+    
+    const judgmentTable = {
+      gu:    ["aiko",  "win",  "lose"],
+      choki: ["lose",  "aiko", "win" ],
+      pa:    ["win",   "lose", "aiko"]
+    };
+    
+    const gameResult = judgmentTable[chosenType][opponentHandIndex];
+    
+    if (gameResult === "win") {
+      showResult("win");
+    } else if (gameResult === "lose") {
+      showResult("lose");
+    } else if (gameResult === "aiko") {
+      playFlag = false;
+      clearInterval(countdownTimerId);
+      initGameSequence(true);
+    }
+  });
+
+  // 勝敗画面（オーバーレイ）をクリックして初期状態へリセット
+  $("#result_overlay").on("click", function() {
+    $(this).hide();
+    $("#game_message").hide();
+    $("#start_btn").show();     
+    $("#countdown_box").text("-");
+    $("#status_text").text("CHOOSE MODE & PRESS START");
+    $("#opponent_hand").attr("src", "img/handsSign/hands_gu.jpg"); 
+    $(".card-slot").empty(); 
+    isGameRunning = false; // モードロック解除
+  });
+  
+});
+</script>
+</body>
+</html>

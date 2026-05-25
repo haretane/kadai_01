@@ -1,0 +1,186 @@
+/* 全体のリセットとモダンフォント設定 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: #f8f9fa;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #111111;
+}
+
+/* フレーム */
+.game-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 40px auto;
+  background-color: #ffffff;
+  padding: 20px;
+  border: 2px solid #111111;
+}
+
+/* モード選択エリア */
+.mode-area {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border: 2px solid #111111;
+  background-color: #ffffff;
+}
+.mode-btn {
+  flex: 1;
+  background-color: #ffffff;
+  color: #111111;
+  border: none;
+  border-right: 1px solid #111111;
+  padding: 8px 0;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.mode-btn:last-child {
+  border-right: none;
+}
+/* 選択されているモードの反転 */
+.mode-btn.active {
+  background-color: #111111;
+  color: #ffffff;
+}
+
+/* 状況メッセージ */
+#status_text {
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+/* 相手の手（ディスプレイ） */
+.opponent-area {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+.display-box {
+  width: 100px;
+  height: 100px;
+  border: 2px solid #111111;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.display-box img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+/* コントロールエリア（Flexbox） */
+.control-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+/* ステータスボックス */
+.status-box {
+  flex: 1; 
+  height: 44px;
+  border: 2px solid #111111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+#start_btn {
+  width: 100%;
+  height: 100%;
+  background-color: #111111;
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+#start_btn:active {
+  filter: brightness(0.7);
+}
+
+#game_message {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* カウントダウンボックス */
+#countdown_box {
+  width: 44px;
+  height: 44px;
+  border: 2px solid #111111;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/*  4×4グリッド（隙間1px） */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background-color: #111111;
+  border: 1px solid #111111;
+}
+
+/* 1つのマス目 */
+.card-slot {
+  background-color: #ffffff;
+  aspect-ratio: 1 / 1; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+.card-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.15s ease-out; /* 回転時のアニメーションを滑らかに */
+}
+
+/* カードを押した時の沈み込み */
+.card-slot:active img {
+  filter: brightness(0.8);
+}
+
+/* 勝敗オーバーレイ */
+#result_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+#result_overlay img {
+  max-width: 80%;
+  height: auto;
+}
